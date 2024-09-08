@@ -11,7 +11,7 @@
  */
 
 import { derived, get, readable, writable } from 'svelte/store'
-import type { Writable } from 'svelte/store'
+import type { Readable } from 'svelte/store'
 import { notifyManager, useQueryClient } from '@tanstack/svelte-query'
 import type {
   QueryObserver,
@@ -21,10 +21,10 @@ import type {
   QueryObserverOptions,
 } from '@tanstack/svelte-query'
 
-export type MaybeWritable<T> = T | Writable<T>
+export type MaybeReadable<T> = T | Readable<T>
 
-export const isWritable = <T>(obj: MaybeWritable<T>): obj is Writable<T> =>
-  obj != null && typeof obj === 'object' && 'subscribe' in obj && 'set' in obj && 'update' in obj
+export const isReadable = <T>(obj: MaybeReadable<T>): obj is Readable<T> =>
+  obj != null && typeof obj === 'object' && 'subscribe' in obj && typeof obj.subscribe === 'function'
 
 export function createReactiveQuery<
   TQueryFnData,
@@ -33,11 +33,11 @@ export function createReactiveQuery<
   TQueryData,
   TQueryKey extends QueryKey
 >(
-  options: MaybeWritable<QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>>,
+  options: MaybeReadable<QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>>,
   Observer: typeof QueryObserver,
   queryClient: QueryClient = useQueryClient()
 ): CreateQueryResult<TData, TError> {
-  const optionsStore = isWritable(options) ? options : writable(options)
+  const optionsStore = isReadable(options) ? options : writable(options)
 
   const defaultOptionsStore = derived(optionsStore, ($options) => {
     const defaultOptions = queryClient.defaultQueryOptions($options)

@@ -14,7 +14,7 @@ import type {
 } from '@tanstack/svelte-query'
 import type { TRPCUntypedClient } from '@trpc/client'
 import type { AnyRouter, MaybePromise } from '@trpc/server'
-import { isWritable } from '../../extensions/createReactiveQuery'
+import { isReadable } from '../../extensions/createReactiveQuery'
 import { getQueryKeyInternal } from '../../helpers/getQueryKey'
 import type { SvelteQueryProxy, TRPCOptions } from './types'
 
@@ -47,7 +47,9 @@ export function createSvelteQueryProxy<T extends AnyRouter>(
 
     const path = pathCopy.join('.')
 
-    const input = isWritable(anyArgs[0]) ? get(anyArgs[0]) : anyArgs[0]
+    const inputIsReadable = isReadable(anyArgs[0])
+
+    const input = inputIsReadable ? get(anyArgs[0]) : anyArgs[0]
 
     const abortOnUnmount =
       Boolean(svelteQueryOptions?.abortOnUnmount) || Boolean(anyArgs[1]?.trpc?.abortOnUnmount)
@@ -64,7 +66,7 @@ export function createSvelteQueryProxy<T extends AnyRouter>(
           ...anyArgs[1],
         } satisfies CreateQueryOptions
 
-        if (!isWritable(anyArgs[0])) {
+        if (!inputIsReadable) {
           return createQuery(queryOptions)
         }
 
@@ -104,7 +106,7 @@ export function createSvelteQueryProxy<T extends AnyRouter>(
           ...anyArgs[1],
         } satisfies CreateInfiniteQueryOptions
 
-        if (!isWritable(anyArgs[0])) {
+        if (!isReadable(anyArgs[0])) {
           return createInfiniteQuery(infiniteQueryOptions)
         }
 
